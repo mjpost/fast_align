@@ -27,14 +27,11 @@ class Aligner:
         self.tools = popen_io(tools_cmd)
 
     def align(self, line):
-        self.fwd_align.stdin.write('{}\n'.format(line))
-        self.rev_align.stdin.write('{}\n'.format(line))
+        fwd_line = self.fwd_align.communicate('{}\n'.format(line).encode('utf-8'))[0].decode('utf-8')
+        rev_line = self.rev_align.communicate('{}\n'.format(line).encode('utf-8'))[0].decode('utf-8')
         # f words ||| e words ||| links ||| score
-        fwd_line = self.fwd_align.stdout.readline().split('|||')[2].strip()
-        rev_line = self.rev_align.stdout.readline().split('|||')[2].strip()
-        self.tools.stdin.write('{}\n'.format(fwd_line))
-        self.tools.stdin.write('{}\n'.format(rev_line))
-        al_line = self.tools.stdout.readline().strip()
+        message = '{}\n{}\n'.format(fwd_line.split(' ||| ')[2], rev_line.split(' ||| ')[2])
+        al_line = self.tools.communicate(message.encode('utf-8'))[0].decode('utf-8').rstrip()
         return al_line
  
     def close(self):
